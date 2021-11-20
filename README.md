@@ -1,6 +1,8 @@
 # Sub-Dawg
 Little tool to calculate subnets
 
+[Demo](https://jhofer.github.io/sub-dawg/)
+
 VNET
 10.223.9.128/25
 
