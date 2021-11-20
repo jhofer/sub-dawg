@@ -18,17 +18,20 @@ function App() {
   const [ipRange, setIpRange] = useState("192.168.0.0");
 
   const [vnetBin] = calcMask(vNetSize);
-  const [subnetSizes, setSubnetSizes] = useState([vNetSize]);
+  const [subnetSizes, setSubnetSizes] = useState([
+    { size: vNetSize, name: "snet-default" },
+  ]);
   const hostCountVnet = calcHostCount(vNetSize);
 
- 
-
-  const subnets = calcSubnets(ipRange,vNetSize,subnetSizes);
-  const subnetHostCount = subnets.reduce((total,sub)=>total+sub.hostcount,0)
+  const subnets = calcSubnets(ipRange, vNetSize, subnetSizes);
+  const subnetHostCount = subnets.reduce(
+    (total, sub) => total + sub.hostcount,
+    0
+  );
 
   return (
-    <div className="site-card-border-less-wrapper">
-      <Card title="V-Net">
+    <div className="site">
+      <Card title="V-Net" style={{margin:20}}>
         <Row>
           <Col span={12}>
             <Slider
@@ -73,17 +76,27 @@ function App() {
         <Subnet
           key={index}
           subnet={subnet}
-          onSizeChange={(newSIze) => {
-              const newSizes = [...subnetSizes];
-              newSizes[index] =newSIze
-              setSubnetSizes(newSizes);
-            }
-          }
+          onSizeChange={({ subnetSize, subnetName }) => {
+            const newSizes = [...subnetSizes];
+            newSizes[index] = { size: subnetSize, name: subnetName };
+            setSubnetSizes(newSizes);
+          }}
+          onDelete={() => {
+            const newSizes = [...subnetSizes];
+            newSizes.splice(index, 1);
+            setSubnetSizes(newSizes);
+          }}
         />
       ))}
       <Button
         onClick={() => {
-          setSubnetSizes([...subnetSizes, subnets[subnets.length-1].size]); 
+          setSubnetSizes([
+            ...subnetSizes,
+            {
+              size: subnets[subnets.length - 1].size,
+              name: "snet-default-" + subnets.length,
+            },
+          ]);
         }}
       >
         Add Subnet

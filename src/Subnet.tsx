@@ -1,31 +1,39 @@
 import { useEffect, useState } from "react";
-import { Card, Col, Row, Slider, Statistic } from "antd";
+import { Button, Card, Col, Input, Row, Slider, Statistic } from "antd";
 import { Ip } from "./Ip";
 import { MAX_NET_SIZE } from "./utilities";
 import { ISubnet } from "./calculator";
 
 export interface SubnetProps {
   subnet: ISubnet;
-  onSizeChange: (newSize: number) => void;
+  onSizeChange: (subnet: {subnetSize: number, subnetName: string}) => void;
+  onDelete: () => void;
 }
 
 export function Subnet(props: SubnetProps) {
-  const { subnet, onSizeChange } = props;
-  const { startIp, lastIp, minSize, size, subnetMask, hostcount } = subnet;
+  const { subnet, onSizeChange: onChange, onDelete } = props;
+  const { startIp, lastIp, minSize, size, subnetMask, hostcount, name } = subnet;
 
   const [subnetSize, setSubnetSize] = useState(size);
+  const [subnetName, setName] = useState(name);
 
   useEffect(() => {
-    onSizeChange(subnetSize);
-  }, [subnetSize]);
+    onChange({subnetSize,subnetName});
+  }, [subnetSize, subnetName]);
 
   return (
-    <Card title="Sub-Net">
-        <Row gutter={20}>
+    <Card style={{margin:20}} title={<Input value={name} onChange={(e)=>{
+      setName(e.currentTarget.value)
+    }}/>}>
+      <Row gutter={20}>
         <Col span={12}>
-          <Statistic title={"Subnet" } value={startIp+"/"+subnetSize} />
+          <Statistic title={"Subnet"} value={startIp + "/" + subnetSize} />
+        </Col>
+        <Col>
+        <Button onClick={onDelete}>Delete</Button>
         </Col>
       </Row>
+      
       <Row>
         <Col span={9}>
           <Slider
