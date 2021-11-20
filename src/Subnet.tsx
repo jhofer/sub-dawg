@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Card, Col, Input, Row, Slider, Statistic } from "antd";
+import { useEffect, useState } from "react";
+import { Card, Col, Row, Slider, Statistic } from "antd";
 import { Ip } from "./Ip";
 import { MAX_NET_SIZE } from "./utilities";
 import { ISubnet } from "./calculator";
@@ -41,7 +41,6 @@ export function Subnet(props: SubnetProps) {
         </Col>
       </Row>
 
-    
       <Ip title="Subnet" dec={subnetMask.split(".")}></Ip>
 
       <Row>
