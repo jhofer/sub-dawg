@@ -18,11 +18,15 @@ function App() {
 
   const [vnetBin] = calcMask(vNetSize);
   const [subnets, setSubNets] = useState([
-      {nextIp:"", minSize:-1},
+    { startIp: ipRange, size: vNetSize },
   ]);
   const hostCountVnet = calcHostCount(vNetSize);
 
-
+  useEffect(() => {
+    const newSubs = [...subnets];
+    newSubs[0] = { startIp: ipRange, size: vNetSize };
+    setSubNets(newSubs);
+  }, [ipRange, vNetSize]);
 
   return (
     <div className="site-card-border-less-wrapper">
@@ -59,30 +63,26 @@ function App() {
           </Col>
         </Row>
       </Card>
-      {subnets.map(({ nextIp, minSize }, index) => {
-        const s = index === 0?vNetSize:subnets[index-1].minSize;
-        const r = index === 0?ipRange:subnets[index-1].nextIp;
-        return (
-          <Subnet
-            key={index}
-            startIp={r}
-            vNetSize={s}
-            onChange={({ nextIp, size }) => {
-              if (index + 1 < subnets.length) {
-                const newSubnets = [...subnets];
-                newSubnets[index] = {
-                  nextIp,
-                  minSize: size
-                };
-                //setSubNets(newSubnets);
-              }
-            }}
-          />
-        );
-      })}
+      {subnets.map(({ startIp, size }, index) => (
+        <Subnet
+          key={startIp}
+          startIp={startIp}
+          vNetSize={size}
+          onChange={(nextIp) => {
+            if (index + 1 < subnets.length) {
+              const newSubnets = [...subnets];
+              newSubnets[index + 1] = {
+                ...newSubnets[index],
+                startIp: nextIp,
+              };
+              setSubNets(newSubnets);
+            }
+          }}
+        />
+      ))}
       <Button
         onClick={() => {
-          setSubNets([...subnets, { nextIp: "", minSize: -1 }]);
+          setSubNets([...subnets, { startIp: "", size: 0 }]);
         }}
       >
         Add Subnet
