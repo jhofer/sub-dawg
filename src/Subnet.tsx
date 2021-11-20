@@ -1,92 +1,59 @@
 import React, { useEffect, useState } from "react";
 import { Card, Col, Input, Row, Slider, Statistic } from "antd";
 import { Ip } from "./Ip";
-import {
-  calcMask,
-  invert,
-  pad,
-  calcHostCount,
-  andIpBin,
-  binIp2Dec,
-  orIpBin,
-  MAX_NET_SIZE,
-  calcSubnetCount,
-  getNextIp,
-} from "./utilities";
+import { MAX_NET_SIZE } from "./utilities";
+import { ISubnet } from "./calculator";
 
 export interface SubnetProps {
-  vNetSize: number;
-  startIp: string;
-  onChange: (nextIp: string) => void;
+  subnet: ISubnet;
+  onSizeChange: (newSize: number) => void;
 }
 
 export function Subnet(props: SubnetProps) {
-  const { vNetSize, startIp, onChange } = props;
-  const [vnetBin] = calcMask(vNetSize);
-  const [subNetSize, setSubNetSize] = useState(vNetSize);
-  const [subnetBin, subnetDez] = calcMask(subNetSize);
-  const invertedSubnet = subnetBin.map((s) => s.split("").map(invert).join(""));
-  const hostCountSubnet = calcHostCount(subNetSize);
-  const ipRangeDec = startIp.split(".");
-  const ipRangeBin = ipRangeDec.map((dec) => pad(Number(dec).toString(2)));
-  const networkPrefixBin = andIpBin(ipRangeBin, subnetBin);
-  const networkPrefixDec = binIp2Dec(networkPrefixBin);
-  const lastSubnetIpBin = orIpBin(ipRangeBin, invertedSubnet);
-  const lastSubnetIpDec = binIp2Dec(lastSubnetIpBin);
-  const subnetCount = calcSubnetCount(subnetBin, vnetBin);
+  const { subnet, onSizeChange } = props;
+  const { startIp, lastIp, minSize, size, subnetMask, hostcount } = subnet;
 
-  const nextSubnetIpDec = getNextIp(lastSubnetIpDec);
+  const [subnetSize, setSubnetSize] = useState(size);
 
   useEffect(() => {
-    onChange(nextSubnetIpDec.join("."));
-  }, [vNetSize, startIp, subNetSize, onChange]);
+    onSizeChange(subnetSize);
+  }, [subnetSize]);
 
   return (
     <Card title="Sub-Net">
+        <Row gutter={20}>
+        <Col span={12}>
+          <Statistic title={"Subnet" } value={startIp+"/"+subnetSize} />
+        </Col>
+      </Row>
       <Row>
         <Col span={9}>
           <Slider
-            min={vNetSize}
+            min={minSize}
             max={MAX_NET_SIZE}
-            onChange={setSubNetSize}
-            value={subNetSize}
+            onChange={setSubnetSize}
+            value={subnetSize}
           />
         </Col>
 
         <Col span={3}>
-          <div style={{ fontSize: 20 }}>{subNetSize}</div>
+          <div style={{ fontSize: 20 }}>{subnetSize}</div>
         </Col>
       </Row>
-      <Row>
-        <Col>
-          <Input
-            readOnly
-            placeholder="IP Range"
-            value={subnetDez.join(".")}
-            addonAfter={"/" + vNetSize}
-          />
-        </Col>
-      </Row>
-      <Ip title="Subnet" bin={subnetBin}></Ip>
-      <Ip bin={invertedSubnet} title="Inverted" />
-      <Row>
-        <Col span={12}>
-          <Statistic title="SubnetCount" value={subnetCount} />
-        </Col>
-      </Row>
+
+    
+      <Ip title="Subnet" dec={subnetMask.split(".")}></Ip>
 
       <Row>
         <Col span={12}>
           <Statistic
             title="Subnet Host Count (minus Networkaddress and broadcast)"
-            value={`${hostCountSubnet} - 2 = ${hostCountSubnet - 2} `}
+            value={`${hostcount} - 2 = ${hostcount - 2} `}
           />
         </Col>
       </Row>
-      <Ip dec={networkPrefixDec} title="Network Prefix" />
 
-      <Ip bin={lastSubnetIpBin} title="Last Subnet IP" />
-      <Ip dec={nextSubnetIpDec} title="Next Subnet IP" />
+      <Ip dec={lastIp.split(".")} title="Last Subnet IP" />
     </Card>
   );
 }

@@ -10,6 +10,7 @@ import {
   MIN_NET_SIZE,
 } from "./utilities";
 import { Subnet } from "./Subnet";
+import { calcSubnets } from "./calculator";
 
 function App() {
   const [vNetSize, setVNetSize] = useState(16);
@@ -17,16 +18,13 @@ function App() {
   const [ipRange, setIpRange] = useState("192.168.0.0");
 
   const [vnetBin] = calcMask(vNetSize);
-  const [subnets, setSubNets] = useState([
-    { startIp: ipRange, size: vNetSize },
-  ]);
+  const [subnetSizes, setSubnetSizes] = useState([vNetSize]);
   const hostCountVnet = calcHostCount(vNetSize);
 
-  useEffect(() => {
-    const newSubs = [...subnets];
-    newSubs[0] = { startIp: ipRange, size: vNetSize };
-    setSubNets(newSubs);
-  }, [ipRange, vNetSize]);
+ 
+
+  const subnets = calcSubnets(ipRange,vNetSize,subnetSizes);
+  const subnetHostCount = subnets.reduce((total,sub)=>total+sub.hostcount,0)
 
   return (
     <div className="site-card-border-less-wrapper">
@@ -62,27 +60,30 @@ function App() {
             />
           </Col>
         </Row>
+        <Row>
+          <Col span={12}>
+            <Statistic
+              title="Host Count of all Subnets"
+              value={`${subnetHostCount}`}
+            />
+          </Col>
+        </Row>
       </Card>
-      {subnets.map(({ startIp, size }, index) => (
+      {subnets.map((subnet, index) => (
         <Subnet
-          key={startIp}
-          startIp={startIp}
-          vNetSize={size}
-          onChange={(nextIp) => {
-            if (index + 1 < subnets.length) {
-              const newSubnets = [...subnets];
-              newSubnets[index + 1] = {
-                ...newSubnets[index],
-                startIp: nextIp,
-              };
-              setSubNets(newSubnets);
+          key={index}
+          subnet={subnet}
+          onSizeChange={(newSIze) => {
+              const newSizes = [...subnetSizes];
+              newSizes[index] =newSIze
+              setSubnetSizes(newSizes);
             }
-          }}
+          }
         />
       ))}
       <Button
         onClick={() => {
-          setSubNets([...subnets, { startIp: "", size: 0 }]);
+          setSubnetSizes([...subnetSizes, subnets[subnets.length-1].size]); 
         }}
       >
         Add Subnet
